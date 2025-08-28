@@ -25,9 +25,9 @@ services:
         failure_action: rollback
       labels:
         - traefik.enable=true
-        - traefik.http.routers.app.rule=Host(`${APP_URL}`)
-        - traefik.http.routers.app.entrypoints=websecure
-        - traefik.http.services.app.loadbalancer.server.port=8080
+        - traefik.http.routers.${FULL_APP_NAME}-app.rule=Host(`${APP_URL}`)
+        - traefik.http.routers.${FULL_APP_NAME}-app.entrypoints=websecure
+        - traefik.http.services.${FULL_APP_NAME}-app.loadbalancer.server.port=8080
   queue:
     image: ${DOCKERHUB_USERNAME}/${APP_NAME}-queue:${IMAGE_TAG:-latest}
     networks:
@@ -96,9 +96,9 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.tcp.routers.db.rule=HostSNI(`*`)
-        - traefik.tcp.services.db.loadbalancer.server.port=${DB_PORT}
-        - traefik.tcp.routers.db.entrypoints=${DB_TRAEFIK_ENTRYPOINT}
+        - traefik.tcp.routers.${FULL_APP_NAME}-db.rule=HostSNI(`*`)
+        - traefik.tcp.services.${FULL_APP_NAME}-db.loadbalancer.server.port=${DB_PORT}
+        - traefik.tcp.routers.${FULL_APP_NAME}-db.entrypoints=${DB_TRAEFIK_ENTRYPOINT}
       mode: replicated
       # DO NOT REPLICATE A DATABASE MORE THAN ONCE
       replicas: 1
@@ -165,9 +165,9 @@ services:
         failure_action: rollback
       labels:
         - traefik.enable=true
-        - traefik.http.routers.kafka.rule=Host(`${KAFKA_DASHBOARD_URL}`)
-        - traefik.http.routers.kafka.entrypoints=websecure
-        - traefik.http.services.kafka.loadbalancer.server.port=8080
+        - traefik.http.routers.${FULL_APP_NAME}-kafka.rule=Host(`${KAFKA_DASHBOARD_URL}`)
+        - traefik.http.routers.${FULL_APP_NAME}-kafka.entrypoints=websecure
+        - traefik.http.services.${FULL_APP_NAME}-kafka.loadbalancer.server.port=8080
 
 networks:
   app:
