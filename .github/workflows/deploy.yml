@@ -54,7 +54,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile.prod
+          file: devops/deployment/Dockerfile.prod
           target: http
           push: true
           tags: "${{ steps.vars.outputs.DOCKERHUB_USERNAME }}/${{ steps.vars.outputs.APP_NAME }}-http:${{ github.sha }}"
@@ -62,7 +62,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile.prod
+          file: devops/deployment/Dockerfile.prod
           target: queue
           push: true
           tags: "${{ steps.vars.outputs.DOCKERHUB_USERNAME }}/${{ steps.vars.outputs.APP_NAME }}-queue:${{ github.sha }}"
@@ -70,7 +70,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile.prod
+          file: devops/deployment/Dockerfile.prod
           target: scheduler
           push: true
           tags: "${{ steps.vars.outputs.DOCKERHUB_USERNAME }}/${{ steps.vars.outputs.APP_NAME }}-scheduler:${{ github.sha }}"
