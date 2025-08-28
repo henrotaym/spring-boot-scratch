@@ -36,15 +36,10 @@ resource "doppler_secret" "app_names" {
   value    = var.APP_NAME
 }
 
-data "doppler_secrets" "dockerhub" {
-  project = "dockerhub"
-  config  = "private"
-}
-
 resource "doppler_secret" "dockerhub_usernames" {
   for_each = doppler_environment.environments
   project  = doppler_project.app.name
   config   = each.value.name
   name     = "DOCKERHUB_USERNAME"
-  value    = data.doppler_secrets.dockerhub.map.DOCKERHUB_USERNAME
+  value    = data.doppler_secrets.commons.map.DOCKERHUB_USERNAME
 }

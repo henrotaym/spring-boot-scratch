@@ -5,13 +5,13 @@ locals {
 resource "github_actions_secret" "dockerhub_username" {
   repository      = local.github_repository_name
   secret_name     = "DOCKERHUB_USERNAME"
-  plaintext_value = data.doppler_secrets.dockerhub.map.DOCKERHUB_USERNAME
+  plaintext_value = data.doppler_secrets.commons.map.DOCKERHUB_USERNAME
 }
 
 resource "github_actions_secret" "dockerhub_token" {
   repository      = local.github_repository_name
   secret_name     = "DOCKERHUB_TOKEN"
-  plaintext_value = data.doppler_secrets.dockerhub.map.DOCKERHUB_TOKEN
+  plaintext_value = data.doppler_secrets.commons.map.DOCKERHUB_TOKEN
 }
 
 resource "github_actions_secret" "app_name" {

@@ -74,7 +74,7 @@ resource "ssh_resource" "init_swarm" {
 }
 
 output "proxy_url" {
-  value = "${var.SERVER_NAME}-proxy.${data.doppler_secrets.cloudns.map.DEFAULT_DNS_ZONE_ADDRESS}"
+  value = nonsensitive("${var.SERVER_NAME}-proxy.${data.doppler_secrets.commons.map.DNS_DEFAULT_ZONE_ADDRESS}")
 }
 
 output "server_ip" {

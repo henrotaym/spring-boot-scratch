@@ -82,16 +82,11 @@ resource "doppler_secret" "db_password" {
   value = random_password.db_password.result
 }
 
-data "doppler_secrets" "cloudns" {
-  project = "cloudns"
-  config = "private"
-}
-
 resource "doppler_secret" "app_url" {
   project = var.APP_NAME
   config = var.APP_ENVIRONMENT
   name = "APP_URL"
-  value = "${local.full_app_name}.${data.doppler_secrets.cloudns.map.DEFAULT_DNS_ZONE_ADDRESS}"
+  value = "${local.full_app_name}.${data.doppler_secrets.commons.map.DNS_DEFAULT_ZONE_ADDRESS}"
 }
 
 output "app_url" {
@@ -102,7 +97,7 @@ resource "doppler_secret" "kafka_dashboard_url" {
   project = var.APP_NAME
   config = var.APP_ENVIRONMENT
   name = "KAFKA_DASHBOARD_URL"
-  value = "${local.full_app_name}-kafka.${data.doppler_secrets.cloudns.map.DEFAULT_DNS_ZONE_ADDRESS}"
+  value = "${local.full_app_name}-kafka.${data.doppler_secrets.commons.map.DNS_DEFAULT_ZONE_ADDRESS}"
 }
 
 output "kafka_dashboard_url" {
@@ -113,7 +108,7 @@ resource "doppler_secret" "database_url" {
   project = var.APP_NAME
   config = var.APP_ENVIRONMENT
   name = "DATABASE_URL"
-  value = "${local.full_app_name}-db.${data.doppler_secrets.cloudns.map.DEFAULT_DNS_ZONE_ADDRESS}"
+  value = "${local.full_app_name}-db.${data.doppler_secrets.commons.map.DNS_DEFAULT_ZONE_ADDRESS}"
 }
 
 output "database_url" {

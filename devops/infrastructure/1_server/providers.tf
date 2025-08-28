@@ -29,33 +29,23 @@ terraform {
 
 provider "doppler" {
   doppler_token = var.DOPPLER_TOKEN
-  alias = "doppler"
+  alias = "private"
 }
 
-data "doppler_secrets" "doppler" {
-  provider = doppler.doppler
+data "doppler_secrets" "commons" {
+  provider = doppler.private
 }
 
 provider "doppler" {
-  doppler_token = data.doppler_secrets.doppler.map.DOPPLER_USER_ACCESS_TOKEN
-}
-
-data "doppler_secrets" "oci" {
-  project = "oci"
-  config = "private"
-}
-
-data "doppler_secrets" "cloudns" {
-  project = "cloudns"
-  config = "private"
+  doppler_token = data.doppler_secrets.commons.map.DOPPLER_USER_ACCESS_TOKEN
 }
 
 provider "oci" {
-  tenancy_ocid = data.doppler_secrets.oci.map.OCI_TENANCY
-  user_ocid = data.doppler_secrets.oci.map.OCI_USER
-  private_key = data.doppler_secrets.oci.map.OCI_PRIVATE_KEY
-  fingerprint = data.doppler_secrets.oci.map.OCI_FINGERPRINT
-  region = data.doppler_secrets.oci.map.OCI_REGION
+  tenancy_ocid = data.doppler_secrets.commons.map.OCI_TENANCY
+  user_ocid = data.doppler_secrets.commons.map.OCI_USER
+  private_key = data.doppler_secrets.commons.map.OCI_PRIVATE_KEY
+  fingerprint = data.doppler_secrets.commons.map.OCI_FINGERPRINT
+  region = data.doppler_secrets.commons.map.OCI_REGION
 }
 
 provider "tls" {}

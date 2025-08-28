@@ -15,22 +15,17 @@ terraform {
 
 provider "doppler" {
   doppler_token = var.DOPPLER_TOKEN
-  alias = "doppler"
+  alias = "private"
 }
 
-data "doppler_secrets" "doppler" {
-  provider = doppler.doppler
+data "doppler_secrets" "commons" {
+  provider = doppler.private
 }
 
 provider "doppler" {
-  doppler_token = data.doppler_secrets.doppler.map.DOPPLER_USER_ACCESS_TOKEN
-}
-
-data "doppler_secrets" "github" {
-  project = "github"
-  config = "private"
+  doppler_token = data.doppler_secrets.commons.map.DOPPLER_USER_ACCESS_TOKEN
 }
 
 provider "github" {
-  token = data.doppler_secrets.github.map.GITHUB_PERSONAL_SECRETS_ACCESS_TOKEN
+  token = data.doppler_secrets.commons.map.GITHUB_PERSONAL_SECRETS_ACCESS_TOKEN
 }
