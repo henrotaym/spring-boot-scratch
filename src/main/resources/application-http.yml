@@ -1,6 +1,2 @@
 server:
-  servlet:
-    context-path: /api
-spring:
-  main:
-    web-application-type: servlet
+  port: 8080

@@ -1,0 +1,2 @@
+GET http://app:8081/api/actuator/health
+Content-Type: application/json
