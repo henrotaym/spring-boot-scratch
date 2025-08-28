@@ -1,0 +1,181 @@
+services:
+  http:
+    image: ${DOCKERHUB_USERNAME}/${APP_NAME}-http:${IMAGE_TAG:-latest}
+    networks:
+      - accessible
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null localhost:8080/api/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    environment:
+      - DOPPLER_TOKEN=${DOPPLER_TOKEN}
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        # max_attempts: 10
+      rollback_config:
+        order: start-first
+      update_config:
+        order: start-first
+        failure_action: rollback
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.app.rule=Host(`${APP_URL}`)
+        - traefik.http.routers.app.entrypoints=websecure
+        - traefik.http.services.app.loadbalancer.server.port=8080
+  queue:
+    image: ${DOCKERHUB_USERNAME}/${APP_NAME}-queue:${IMAGE_TAG:-latest}
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null localhost:8081/api/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    environment:
+      - DOPPLER_TOKEN=${DOPPLER_TOKEN}
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        # max_attempts: 10
+      rollback_config:
+        order: start-first
+      update_config:
+        order: start-first
+        failure_action: rollback
+  scheduler:
+    image: ${DOCKERHUB_USERNAME}/${APP_NAME}-scheduler:${IMAGE_TAG:-latest}
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null localhost:8082/api/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    environment:
+      - DOPPLER_TOKEN=${DOPPLER_TOKEN}
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        # max_attempts: 10
+      rollback_config:
+        order: start-first
+      update_config:
+        order: start-first
+        failure_action: rollback
+  mysql:
+    image: "mysql/mysql-server:8.0"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: "${DB_DATABASE}"
+      MYSQL_USER: "${DB_USERNAME}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - "mysql_data:/var/lib/mysql"
+    networks:
+      - app
+      - accessible
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.tcp.routers.db.rule=HostSNI(`*`)
+        - traefik.tcp.services.db.loadbalancer.server.port=${DB_PORT}
+        - traefik.tcp.routers.db.entrypoints=${DB_TRAEFIK_ENTRYPOINT}
+      mode: replicated
+      # DO NOT REPLICATE A DATABASE MORE THAN ONCE
+      replicas: 1
+      restart_policy:
+        condition: any
+        # max_attempts: 10
+      rollback_config:
+        order: start-first
+      update_config:
+        order: start-first
+        failure_action: rollback
+  kafka:
+    image: confluentinc/cp-kafka:7.9.1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+      - /home/ubuntu/apps/${FULL_APP_NAME}/kafka/server.properties.custom:/etc/kafka/server.properties.custom
+      - /home/ubuntu/apps/${FULL_APP_NAME}/kafka/start.sh:/opt/kafka/start.sh
+    command: ["/bin/bash", "/opt/kafka/start.sh"]
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null kafka-ui:8080/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 30s
+      retries: 5
+      start_period: 60s
+    deploy:
+      mode: replicated
+      # DO NOT REPLICATE A DATABASE MORE THAN ONCE
+      replicas: 1
+      restart_policy:
+        condition: any
+        # max_attempts: 10
+      rollback_config:
+        order: start-first
+      update_config:
+        order: start-first
+        failure_action: rollback
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    environment:
+      KAFKA_CLUSTERS_0_NAME: default
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
+    networks:
+      - app
+      - accessible
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        # max_attempts: 10
+      rollback_config:
+        order: start-first
+      update_config:
+        order: start-first
+        failure_action: rollback
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.kafka.rule=Host(`${KAFKA_DASHBOARD_URL}`)
+        - traefik.http.routers.kafka.entrypoints=websecure
+        - traefik.http.services.kafka.loadbalancer.server.port=8080
+
+networks:
+  app:
+    driver: overlay
+  accessible:
+    external: true
+volumes:
+  mysql_data:
+    driver: local
+  kafka_data:
+    driver: local
