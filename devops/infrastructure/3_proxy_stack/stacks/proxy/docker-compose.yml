@@ -1,0 +1,69 @@
+services:
+  traefik:
+    image: traefik:v3.4.1
+    command:
+      # Configuration générale
+      - --ping=true
+      - --api.dashboard=true
+      - --api.insecure=false
+      - --providers.swarm=true
+      - --providers.swarm.exposedbydefault=false
+      - --providers.swarm.network=accessible
+      
+      # Points d'entrée
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.mysql.address=:3306
+      
+      # Redirection HTTP vers HTTPS
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+
+      # Configuration TLS par défaut pour websecure
+      - --entrypoints.websecure.http.tls.certresolver=letsencrypt
+      
+      # Configuration Let's Encrypt
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.email=${DNS_ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
+    ports:
+      - 80:80
+      - 443:443
+      - 3306:3306
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-certificates:/letsencrypt
+    networks:
+      - accessible
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null --no-check-certificate http://localhost:8080/ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        # max_attempts: 10
+      rollback_config:
+        order: start-first
+      update_config:
+        order: start-first
+        failure_action: rollback
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.traefik.rule=Host(`${PROXY_ADDRESS}`)
+        - traefik.http.routers.traefik.entrypoints=websecure
+        - traefik.http.routers.traefik.service=api@internal
+        - traefik.http.services.traefik.loadbalancer.server.port=8080
+
+networks:
+  accessible:
+    external: true
+
+volumes:
+  traefik-certificates:
+    driver: local
