@@ -7,9 +7,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null localhost:8080/api/actuator/health || exit 1"]
       interval: 30s
-      timeout: 60s
+      timeout: 30s
       retries: 5
-      start_period: 60s
+      start_period: 30s
     environment:
       - DOPPLER_TOKEN=${DOPPLER_TOKEN}
     deploy:
@@ -28,40 +28,16 @@ services:
         - traefik.http.routers.app.rule=Host(`${APP_URL}`)
         - traefik.http.routers.app.entrypoints=websecure
         - traefik.http.services.app.loadbalancer.server.port=8080
-  scheduler:
-    image: ${DOCKERHUB_USERNAME}/${APP_NAME}-scheduler:${IMAGE_TAG:-latest}
-    networks:
-      - app
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null localhost:8080/api/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 60s
-      retries: 5
-      start_period: 60s
-    environment:
-      - DOPPLER_TOKEN=${DOPPLER_TOKEN}
-    deploy:
-      mode: replicated
-      replicas: 1
-      restart_policy:
-        condition: any
-        # max_attempts: 10
-      rollback_config:
-        order: start-first
-      update_config:
-        order: start-first
-        failure_action: rollback
-
   queue:
     image: ${DOCKERHUB_USERNAME}/${APP_NAME}-queue:${IMAGE_TAG:-latest}
     networks:
       - app
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null localhost:8080/api/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO /dev/null localhost:8081/api/actuator/health || exit 1"]
       interval: 30s
-      timeout: 60s
+      timeout: 30s
       retries: 5
-      start_period: 60s
+      start_period: 30s
     environment:
       - DOPPLER_TOKEN=${DOPPLER_TOKEN}
     deploy:
@@ -75,7 +51,29 @@ services:
       update_config:
         order: start-first
         failure_action: rollback
-
+  scheduler:
+    image: ${DOCKERHUB_USERNAME}/${APP_NAME}-scheduler:${IMAGE_TAG:-latest}
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null localhost:8082/api/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    environment:
+      - DOPPLER_TOKEN=${DOPPLER_TOKEN}
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        # max_attempts: 10
+      rollback_config:
+        order: start-first
+      update_config:
+        order: start-first
+        failure_action: rollback
   mysql:
     image: "mysql/mysql-server:8.0"
     environment:
