@@ -47,3 +47,15 @@ resource "ssh_resource" "transfer_stack_files" {
     permissions = "0755"
   }
 }
+
+resource "ssh_resource" "remove_stack" {
+  when = "destroy"
+  host = data.doppler_secrets.server.map.PUBLIC_IP
+  user = data.doppler_secrets.server.map.SSH_USERNAME
+  private_key = data.doppler_secrets.server.map.SSH_PRIVATE_KEY
+  timeout = "15s"
+  commands = [
+    "docker stack ls | grep -q ${local.full_app_name} && docker stack rm ${local.full_app_name}",
+    "sudo rm -r /home/ubuntu/apps/${local.full_app_name}"
+  ]
+}
