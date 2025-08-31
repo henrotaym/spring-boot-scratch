@@ -20,14 +20,7 @@ resource "doppler_secret" "db_host" {
   project = var.APP_NAME
   config = var.APP_ENVIRONMENT
   name = "DB_HOST"
-  value = "mysql"
-}
-
-resource "doppler_secret" "db_traefik_entrypoint" {
-  project = var.APP_NAME
-  config = var.APP_ENVIRONMENT
-  name = "DB_TRAEFIK_ENTRYPOINT"
-  value = var.DB_TRAEFIK_ENTRYPOINT
+  value = "${local.full_app_name}-db"
 }
 
 resource "doppler_secret" "db_port" {
@@ -80,6 +73,13 @@ resource "doppler_secret" "db_password" {
   config = var.APP_ENVIRONMENT
   name = "DB_PASSWORD"
   value = random_password.db_password.result
+}
+
+resource "doppler_secret" "kafka_host" {
+  project = var.APP_NAME
+  config = var.APP_ENVIRONMENT
+  name = "KAFKA_HOST"
+  value = "${local.full_app_name}-kafka"
 }
 
 resource "doppler_secret" "app_url" {

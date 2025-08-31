@@ -35,7 +35,6 @@ locals {
 locals {
   firewall_ingress_tcp = [
     { port: 22, description: "SSH", cidr: local.firewall_public_cidr },
-    { port: 3306, description: "DATABASE", cidr: local.firewall_public_cidr },
   ]
 
   firewall_egress_tcp = [
@@ -152,6 +151,16 @@ resource "oci_core_default_security_list" "app" {
         min = egress_security_rules.value.port
         max = egress_security_rules.value.port
       }
+    }
+  }
+
+  ingress_security_rules {
+    protocol = local.firewall_tcp_protocol
+    source = local.firewall_public_cidr
+    description = "DATABASE RANGE"
+    tcp_options {
+      min = var.DATABASE_MIN_PORT
+      max = var.DATABASE_MAX_PORT
     }
   }
 }

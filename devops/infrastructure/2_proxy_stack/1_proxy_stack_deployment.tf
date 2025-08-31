@@ -1,23 +1,3 @@
-resource "doppler_environment" "proxy" {
-  project = "oci-${var.SERVER_NAME}"
-  name = "proxy"
-  slug = "proxy"
-}
-
-resource "doppler_secret" "proxy_address" {
-  project = doppler_environment.proxy.project
-  config = doppler_environment.proxy.name
-  name = "PROXY_ADDRESS"
-  value = "${var.SERVER_NAME}-proxy.${data.doppler_secrets.commons.map.DNS_DEFAULT_ZONE_ADDRESS}"
-}
-
-resource "doppler_secret" "acme_email" {
-  project = doppler_environment.proxy.project
-  config = doppler_environment.proxy.name
-  name = "DNS_ACME_EMAIL"
-  value = data.doppler_secrets.commons.map.DNS_DEFAULT_ZONE_EMAIL_ADDRESS
-}
-
 locals {
   proxy_stack_target_location = "/home/ubuntu/apps/proxy"
 }
@@ -42,10 +22,8 @@ resource "ssh_resource" "create_stack_folder" {
   ]
 }
 
-resource "doppler_service_token" "proxy" {
-  project = doppler_environment.proxy.project
-  config = "proxy"
-  name = "proxy"
+locals {
+  database_ports_range = range(var.DATABASE_MIN_PORT, var.DATABASE_MAX_PORT + 1)
 }
 
 resource "ssh_resource" "deploy_proxy_stack" {
@@ -58,10 +36,14 @@ resource "ssh_resource" "deploy_proxy_stack" {
   private_key = data.doppler_secrets.server.map.SSH_PRIVATE_KEY
   timeout = "1m"
   file {
-    content = file("stacks/proxy/docker-compose.yml")
+    content = templatefile("stacks/proxy/docker-compose.yml.tmpl", {
+      database_ports_range = local.database_ports_range,
+      dns_acme_email = nonsensitive(data.doppler_secrets.commons.map.DNS_DEFAULT_ZONE_EMAIL_ADDRESS),
+      proxy_url = "${var.SERVER_NAME}-proxy.${nonsensitive(data.doppler_secrets.commons.map.DNS_DEFAULT_ZONE_ADDRESS)}"
+    })
     destination = local.proxy_stack_compose_file_target_location
   }
   commands = [
-    "doppler run --token=${doppler_service_token.proxy.key} -- docker stack deploy -c ${local.proxy_stack_compose_file_target_location} --detach=false proxy"
+    "docker stack deploy -c ${local.proxy_stack_compose_file_target_location} --detach=false proxy"
   ]
 }

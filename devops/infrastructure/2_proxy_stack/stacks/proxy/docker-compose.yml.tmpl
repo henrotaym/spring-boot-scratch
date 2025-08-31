@@ -13,7 +13,9 @@ services:
       # Points d'entrée
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
-      - --entrypoints.mysql.address=:3306
+      %{ for port in database_ports_range }
+      - --entrypoints.database-${port}.address=:${port}
+      %{ endfor }
       
       # Redirection HTTP vers HTTPS
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
@@ -24,7 +26,7 @@ services:
       
       # Configuration Let's Encrypt
       - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
-      - --certificatesresolvers.letsencrypt.acme.email=${DNS_ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.email=${dns_acme_email}
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
       - --certificatesresolvers.letsencrypt.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
     ports:
@@ -55,7 +57,7 @@ services:
         failure_action: rollback
       labels:
         - traefik.enable=true
-        - traefik.http.routers.traefik.rule=Host(`${PROXY_ADDRESS}`)
+        - traefik.http.routers.traefik.rule=Host(`${proxy_url}`)
         - traefik.http.routers.traefik.entrypoints=websecure
         - traefik.http.routers.traefik.service=api@internal
         - traefik.http.services.traefik.loadbalancer.server.port=8080

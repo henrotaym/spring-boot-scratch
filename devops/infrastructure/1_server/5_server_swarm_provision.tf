@@ -1,4 +1,58 @@
 locals {
+  save_ports_command = "sudo iptables-save | sudo tee /etc/iptables/rules.v4"
+  default_ports_to_open = [
+    {
+      port     = "2377"
+      protocol = "tcp"
+      comment  = "Docker Swarm Management"
+    },
+    {
+      port     = "7946"
+      protocol = "tcp"
+      comment  = "Docker Swarm Node TCP Communication"
+    },
+    {
+      port     = "7946"
+      protocol = "udp"
+      comment  = "Docker Swarm Node UDP Communication"
+    },
+    {
+      port     = "4789"
+      protocol = "udp"
+      comment  = "Docker Swarm Overlay Network"
+    },
+    {
+      port     = "80"
+      protocol = "tcp"
+      comment  = "HTTP Web Traffic"
+    },
+    {
+      port     = "443"
+      protocol = "tcp"
+      comment  = "HTTPS Web Traffic"
+    },
+  ]
+  database_ports_range = range(var.DATABASE_MIN_PORT, var.DATABASE_MAX_PORT + 1)
+}
+
+locals {
+  database_ports_to_open = [
+    for rule in local.database_ports_range :
+    {
+      port     = rule
+      protocol = "tcp"
+      comment  = "Database Traffic ${rule}"
+    }
+  ]
+}
+
+locals {
+  all_ports_to_open = {
+    for rule in concat(local.default_ports_to_open, local.database_ports_to_open) : "${rule.protocol}-${rule.port}" => rule
+  }
+}
+
+locals {
   install_docker_command = <<-EOT
     # Add Docker's official GPG key:
     sudo apt-get update
@@ -29,16 +83,6 @@ locals {
     EOF
     sudo systemctl restart docker
   EOT
-  configure_ports_command = <<-EOT
-    sudo iptables -A INPUT -p tcp --dport 2377 -j ACCEPT -m comment --comment "Docker Swarm Management"
-    sudo iptables -A INPUT -p tcp --dport 7946 -j ACCEPT -m comment --comment "Docker Swarm Node TCP Communication"
-    sudo iptables -A INPUT -p udp --dport 7946 -j ACCEPT -m comment --comment "Docker Swarm Node UDP Communication"
-    sudo iptables -A INPUT -p udp --dport 4789 -j ACCEPT -m comment --comment "Docker Swarm Overlay Network"
-    sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT -m comment --comment "HTTP Web Traffic"
-    sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT -m comment --comment "HTTPS Web Traffic"
-    sudo iptables -A INPUT -p tcp --dport 3306 -j ACCEPT -m comment --comment "Database Traffic 3306"
-    sudo iptables-save | sudo tee /etc/iptables/rules.v4
-  EOT
   install_doppler_command = <<-EOT
     sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
     curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key' | sudo gpg --dearmor -o /usr/share/keyrings/doppler-archive-keyring.gpg
@@ -55,8 +99,35 @@ resource "ssh_resource" "provide_server" {
   timeout = "3m"
   commands = [
     local.install_docker_command,
-    local.configure_ports_command,
     local.install_doppler_command
+  ]
+}
+
+resource "ssh_resource" "open_ports" {
+  depends_on = [ ssh_resource.provide_server ]
+  for_each = local.all_ports_to_open
+  when = "create"
+  host = doppler_secret.public_ip.value
+  user = doppler_secret.ssh_username.value
+  private_key = doppler_secret.ssh_private_key.value
+  timeout = "30s"
+  commands = [
+    "sudo iptables -A INPUT -p ${each.value.protocol} --dport ${each.value.port} -j ACCEPT -m comment --comment \"${each.value.comment}\"",
+    "${local.save_ports_command}"
+  ]
+}
+
+resource "ssh_resource" "close_ports" {
+  depends_on = [ ssh_resource.provide_server ]
+  for_each = local.all_ports_to_open
+  when = "destroy"
+  host = doppler_secret.public_ip.value
+  user = doppler_secret.ssh_username.value
+  private_key = doppler_secret.ssh_private_key.value
+  timeout = "30s"
+  commands = [
+     "sudo iptables -D INPUT -p ${each.value.protocol} --dport ${each.value.port} -j ACCEPT -m comment --comment \"Database Traffic ${each.value.comment}\"",
+    "${local.save_ports_command}"
   ]
 }
 
