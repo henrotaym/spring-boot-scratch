@@ -29,11 +29,16 @@ resource "ssh_resource" "transfer_stack_files" {
   private_key = data.doppler_secrets.server.map.SSH_PRIVATE_KEY
   timeout = "15s"
   file {
-    content = file("stacks/app/docker-compose.yml")
+    content = templatefile("stacks/app/docker-compose.yml.tmpl", {
+      full_app_name = local.full_app_name,
+      traefik_db_port = "${var.DB_TRAEFIK_PORT}"
+    })
     destination = "${local.app_stack_target_location}/docker-compose.yml"
   }
   file {
-    content = file("kafka/server.properties.custom")
+    content = templatefile("kafka/server.properties.custom.tmpl", {
+      kafka_host = nonsensitive(doppler_secret.kafka_host.value)
+    })
     destination = "${local.kafka_target_location}/server.properties.custom"
   }
   file {

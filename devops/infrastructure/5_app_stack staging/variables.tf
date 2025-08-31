@@ -30,13 +30,13 @@ variable "APP_ENVIRONMENT" {
   nullable = false
 }
 
-variable "DB_TRAEFIK_ENTRYPOINT" {
+variable "DB_TRAEFIK_PORT" {
   sensitive = false
   ephemeral = false
-  type = string
-  description = "Entrypoint name allocated to database in traefik config"
-  nullable = true
-  default = "mysql"
+  type = number
+  description = "Entrypoint port allocated to database in traefik config"
+  nullable = false
+  default = 25060
 }
 
 variable "GITHUB_REPOSITORY_NAME" {
