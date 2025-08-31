@@ -141,7 +141,7 @@ services:
     image: provectuslabs/kafka-ui:v0.7.2
     environment:
       KAFKA_CLUSTERS_0_NAME: default
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: $${FULL_APP_NAME}-kafka:9092
       KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
     networks:
       - app
