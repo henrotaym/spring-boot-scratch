@@ -15,7 +15,7 @@ spring:
   kafka:
     admin:
       auto-create: true
-    bootstrap-servers: ${KAFKA_HOST}:19092
+    bootstrap-servers: ${KAFKA_HOST}:9092
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
