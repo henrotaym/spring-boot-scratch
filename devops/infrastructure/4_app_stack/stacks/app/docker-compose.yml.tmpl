@@ -10,7 +10,7 @@ services:
       interval: 60s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     environment:
       - DOPPLER_TOKEN=$${DOPPLER_TOKEN}
     deploy:
@@ -38,7 +38,7 @@ services:
       interval: 60s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     environment:
       - DOPPLER_TOKEN=$${DOPPLER_TOKEN}
     deploy:
@@ -61,7 +61,7 @@ services:
       interval: 60s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     environment:
       - DOPPLER_TOKEN=$${DOPPLER_TOKEN}
     deploy:
