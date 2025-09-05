@@ -31,20 +31,9 @@ resource "ssh_resource" "transfer_stack_files" {
   file {
     content = templatefile("stacks/app/docker-compose.yml.tmpl", {
       full_app_name = local.full_app_name,
-      traefik_db_port = "${var.DB_TRAEFIK_PORT}"
+      traefik_db_port = "${var.TRAEFIK_DB_PORT}"
     })
     destination = "${local.app_stack_target_location}/docker-compose.yml"
-  }
-  file {
-    content = templatefile("kafka/server.properties.custom.tmpl", {
-      kafka_host = nonsensitive(doppler_secret.kafka_host.value)
-    })
-    destination = "${local.kafka_target_location}/server.properties.custom"
-  }
-  file {
-    content = file("kafka/start.sh")
-    destination = "${local.kafka_target_location}/start.sh"
-    permissions = "0755"
   }
 }
 

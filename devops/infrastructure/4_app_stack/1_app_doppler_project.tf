@@ -100,6 +100,15 @@ resource "doppler_secret" "kafka_dashboard_url" {
   value = "${local.full_app_name}-kafka.${data.doppler_secrets.commons.map.DNS_DEFAULT_ZONE_ADDRESS}"
 }
 
+resource "random_uuid" "kafka_cluster_id" {}
+
+resource "doppler_secret" "kafka_cluster_id" {
+  project = var.APP_NAME
+  config = var.APP_ENVIRONMENT
+  name = "KAFKA_CLUSTER_ID"
+  value = random_uuid.kafka_cluster_id.result
+}
+
 output "kafka_dashboard_url" {
   value = nonsensitive(doppler_secret.kafka_dashboard_url.value)
 }

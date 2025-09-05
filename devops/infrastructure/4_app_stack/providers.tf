@@ -5,6 +5,11 @@ terraform {
       version = "1.18.0"
     }
 
+    random = {
+      source = "hashicorp/random"
+      version = "3.7.2"
+    }
+
     ssh = {
       source = "loafoe/ssh"
       version = "2.7.0"
@@ -30,6 +35,8 @@ data "doppler_secrets" "commons" {
 provider "doppler" {
   doppler_token = data.doppler_secrets.commons.map.DOPPLER_USER_ACCESS_TOKEN
 }
+
+provider "random" {}
 
 provider "ssh" {}
 

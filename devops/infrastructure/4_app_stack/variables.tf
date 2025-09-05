@@ -30,7 +30,7 @@ variable "APP_ENVIRONMENT" {
   nullable = false
 }
 
-variable "DB_TRAEFIK_PORT" {
+variable "TRAEFIK_DB_PORT" {
   sensitive = false
   ephemeral = false
   type = number
