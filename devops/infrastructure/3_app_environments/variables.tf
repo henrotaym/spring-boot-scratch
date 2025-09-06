@@ -1,4 +1,4 @@
-variable "DOPPLER_TOKEN" {
+variable "DOPPLER_PRIVATE_TOKEN" {
   sensitive = true
   ephemeral = true
   type = string
@@ -19,6 +19,5 @@ variable "GITHUB_REPOSITORY_NAME" {
   ephemeral = false
   type = string
   description = "Github repository allocated to application"
-  nullable = true
-  default = ""
+  nullable = false
 }

@@ -1,4 +1,4 @@
-variable "DOPPLER_TOKEN" {
+variable "DOPPLER_PRIVATE_TOKEN" {
   sensitive = true
   ephemeral = true
   type = string

@@ -126,7 +126,7 @@ resource "ssh_resource" "close_ports" {
   private_key = doppler_secret.ssh_private_key.value
   timeout = "30s"
   commands = [
-     "sudo iptables -D INPUT -p ${each.value.protocol} --dport ${each.value.port} -j ACCEPT -m comment --comment \"Database Traffic ${each.value.comment}\"",
+     "sudo iptables -D INPUT -p ${each.value.protocol} --dport ${each.value.port} -j ACCEPT -m comment --comment \"${each.value.comment}\"",
     "${local.save_ports_command}"
   ]
 }

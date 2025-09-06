@@ -28,7 +28,7 @@ terraform {
 }
 
 provider "doppler" {
-  doppler_token = var.DOPPLER_TOKEN
+  doppler_token = var.DOPPLER_PRIVATE_TOKEN
   alias = "private"
 }
 
