@@ -83,5 +83,5 @@ variable "DATABASE_MAX_PORT" {
   type = number
   description = "Max port to allocate to database"
   nullable = true
-  default = 25060
+  default = 25061
 }

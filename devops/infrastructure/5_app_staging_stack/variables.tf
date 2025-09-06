@@ -36,7 +36,7 @@ variable "TRAEFIK_DB_PORT" {
   type = number
   description = "Entrypoint port allocated to database in traefik config"
   nullable = false
-  default = 25060
+  default = 25061
 }
 
 variable "GITHUB_REPOSITORY_NAME" {
