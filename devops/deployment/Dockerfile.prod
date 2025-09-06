@@ -6,7 +6,6 @@ FROM ubuntu:${UBUNTU_VERSION} AS base
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 ARG JDK_VERSION=23.0.1
-ARG MAVEN_VERSION=3.9.9
 
 # Install dependencies
 RUN apt-get update && \
@@ -31,12 +30,14 @@ ENV PATH="$JAVA_HOME/bin:$PATH"
 FROM base AS maven
 
 # Download maven
-RUN wget --output-document=/tmp/maven.tar.gz https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz &&\
+RUN MAVEN_VERSION=$(wget -q -O - "https://dlcdn.apache.org/maven/maven-3/" | grep -o '3\.9\.[0-9]*' | sort -V | tail -n 1) && \
+    wget --output-document=/tmp/maven.tar.gz https://dlcdn.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz &&\
     tar --extract --verbose --file=/tmp/maven.tar.gz --directory=/usr/local && \
+    mv /usr/local/apache-maven-$MAVEN_VERSION /usr/local/apache-maven && \
     rm /tmp/maven.tar.gz
 
 # Make maven binaries globally available
-ENV MAVEN_HOME="/usr/local/apache-maven-${MAVEN_VERSION}"
+ENV MAVEN_HOME="/usr/local/apache-maven"
 ENV MAVEN_OPTS="-Dmaven.repo.local=./.m2"
 ENV PATH="$MAVEN_HOME/bin:${PATH}"
 
