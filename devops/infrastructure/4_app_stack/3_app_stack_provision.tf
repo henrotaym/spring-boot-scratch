@@ -4,7 +4,6 @@ locals {
 
 locals {
   app_stack_target_location = "${local.app_target_location}/app"
-  kafka_target_location = "${local.app_target_location}/kafka"
 }
 
 resource "ssh_resource" "create_stack_folders" {
@@ -15,7 +14,6 @@ resource "ssh_resource" "create_stack_folders" {
   timeout = "15s"
   commands = [
     "mkdir -p ${local.app_stack_target_location}",
-    "mkdir -p ${local.kafka_target_location}",
   ]
 }
 

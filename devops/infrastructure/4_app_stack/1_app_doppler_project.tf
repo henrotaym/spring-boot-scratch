@@ -123,3 +123,10 @@ resource "doppler_secret" "database_url" {
 output "database_url" {
   value = nonsensitive(doppler_secret.database_url.value)
 }
+
+resource "doppler_secret" "database_url_port" {
+  project = var.APP_NAME
+  config = var.APP_ENVIRONMENT
+  name = "DATABASE_URL_PORT"
+  value = var.TRAEFIK_DB_PORT
+}
